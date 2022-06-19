@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}Пост {{ post.text|truncatechars:30 }}{% endblock %}
+{% block content %}
+  {% include 'posts/includes/post_card.html' %}
+{% endblock %}

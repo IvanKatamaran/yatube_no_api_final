@@ -1,0 +1,41 @@
+{% load thumbnail %}
+<div class="card mb-3 mt-1 shadow-sm">
+  <div class="container py-5">
+    <li>
+      Дата публикации: {{ post.pub_date|date:"d E Y" }}
+    </li>
+    {% if not author %}
+      <li>Автор: <a href="{% url 'posts:profile' post.author.username %}">
+        {{ post.author.get_full_name }}
+        </a>
+      </li>
+    {% endif %}
+    {% if not group %}
+      {% if post.group %}
+      <li>
+        Группа: <a href="{% url 'posts:group_list' post.group.slug %}">
+          {{ post.group.title }}
+        </a>
+        </li>
+      {% else %}
+        <li>
+          <span style='color: red'>Этой публикации нет ни в одном сообществе.</span>
+        </li>
+      {% endif %}
+    {% endif %}
+    <article class="col-12 col-md-9">
+      {% thumbnail post.image "400" crop="center" upscale=False as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
+      <p>
+        {{ post.text|linebreaks|truncatechars:650 }}
+      </p>
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'posts:post_detail' post.pk %}">Подробнее</a>
+    {% if user == post.author %}
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'posts:post_edit' post.id %}">
+        Редактировать запись
+      </a>
+    {% endif %}
+    </article>
+  </div>
+</div>
