@@ -3,14 +3,14 @@ import tempfile
 
 from django import forms
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.forms import PostForm
-from ..models import Group, Post, User
+from ..models import Follow, Group, Post, User
 
 User = get_user_model()
 
@@ -165,6 +165,65 @@ class PostViewsTest(TestCase):
         self.assertEqual(context_old, context_new)
         cache.clear()
         self.assertEqual(context_old, context_new)
+
+
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.follower = User.objects.create_user(username='UserFollower')
+        cls.author = User.objects.create_user(username='UserAuthor')
+        cls.user = User.objects.create_user(username='User3')
+        cls.post2 = Post.objects.create(
+            author=cls.author,
+            text='Пост для фолловеров',
+        )
+        cls.follow = Follow.objects.create(
+            user=cls.follower,
+            author=cls.author,
+        )
+
+    def setUp(self):
+        self.authorized_user = Client()
+        self.authorized_user.force_login(self.user)
+        self.authorized_author = Client()
+        self.authorized_author.force_login(self.author)
+        self.authorized_follower = Client()
+        self.authorized_follower.force_login(self.follower)
+
+    def test_user_follow_index(self):
+        """Посты на автора видныи подписчику на странице "избранные авторы."""
+        response = self.authorized_follower.get(reverse('posts:follow_index'))
+        self.assertIn(self.post2, response.context['page_obj'])
+
+    def test_user_not_follow_index(self):
+        """Посты на автора не видныи не
+        подписчику на странице "избранные авторы."""
+        response = self.authorized_user.get(reverse('posts:follow_index'))
+        self.assertNotIn(self.post2, response.context['page_obj'])
+
+    def test_user_follow_to_author(self):
+        """Авторизованный ользователь может подписаться на автора."""
+        response = self.authorized_user.get(reverse('posts:follow_index'))
+        post_count_before = len(response.context['page_obj'])
+        Post.objects.create(
+            author=self.author,
+            text='Пост для фолловеров',
+        )
+        Follow.objects.create(
+            user=self.user,
+            author=self.author,
+        )
+        response2 = self.authorized_user.get(reverse('posts:follow_index'))
+        post_count_after = len(response2.context['page_obj'])
+        self.assertNotEqual(post_count_after, post_count_before)
+        Follow.objects.filter(
+            user=self.user,
+            author=self.author,
+        ).delete()
+        response2 = self.authorized_user.get(reverse('posts:follow_index'))
+        post_count_unfollow = len(response2.context['page_obj'])
+        self.assertEqual(post_count_unfollow, post_count_before)
 
 
 class PaginatorViewsTest(TestCase):

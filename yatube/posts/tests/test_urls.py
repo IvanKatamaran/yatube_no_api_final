@@ -53,9 +53,11 @@ class PostURLTest(TestCase):
         self.authorized_client_2.force_login(self.user2)
 
     def test_404(self):
-        """Запрос к несуществующей странице возвращает ошибку 404."""
+        """Запрос к несуществующей странице возвращает ошибку 404
+        и кастомный шаблон"""
         response = self.client.get('/gertert')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertTemplateUsed(response, 'core/404.html')
 
     def test_urls_uses_correct_reverse(self):
         """URL-адрес использует соответствующий шаблон."""
