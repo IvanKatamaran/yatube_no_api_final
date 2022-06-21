@@ -44,6 +44,22 @@ class PostURLTest(TestCase):
                 f'/posts/{cls.post.pk}/edit/'
             ),
             ('posts:post_detail', (cls.post.pk,), f'/posts/{cls.post.pk}/'),
+            (
+                'posts:add_comment',
+                (cls.post.pk,),
+                f'/posts/{cls.post.pk}/comment/'
+            ),
+            ('posts:follow_index', None, '/follow/',),
+            (
+                'posts:profile_follow',
+                (cls.user.username,),
+                f'/profile/{cls.user.username}/follow/'
+            ),
+            (
+                'posts:profile_unfollow',
+                (cls.user.username,),
+                f'/profile/{cls.user.username}/unfollow/'
+            ),
         )
 
     def setUp(self):
@@ -61,7 +77,6 @@ class PostURLTest(TestCase):
 
     def test_urls_uses_correct_reverse(self):
         """URL-адрес использует соответствующий шаблон."""
-        cache.clear()
         templates_url_names = (
             ('posts:index', None, 'posts/index.html',),
             ('posts:group_list', (self.group.slug,), 'posts/group_list.html'),
@@ -69,6 +84,7 @@ class PostURLTest(TestCase):
             ('posts:post_create', None, 'posts/create_post.html'),
             ('posts:post_edit', (self.post.pk,), 'posts/create_post.html'),
             ('posts:post_detail', (self.post.pk,), 'posts/post_detail.html'),
+            ('posts:follow_index', None, 'posts/follow.html'),
         )
         for name, args, template in templates_url_names:
             reverse_name = reverse(name, args=args)
@@ -78,7 +94,6 @@ class PostURLTest(TestCase):
 
     def test_hardurls_uses_correct_reverse(self):
         """Хардурл соответствует URL."""
-        cache.clear()
         for name, args, hard_urls in self.hard_url_names:
             reverse_name = reverse(name, args=args)
             with self.subTest(reverse_name=reverse_name):
@@ -90,7 +105,25 @@ class PostURLTest(TestCase):
             reverse_name = reverse(name, args=args)
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
+                if name == 'posts:add_comment':
+                    self.assertRedirects(
+                        response, reverse(
+                            'posts:post_detail',
+                            args=(self.post.pk,)
+                        )
+                    )
+                elif name in [
+                    'posts:profile_follow',
+                    'posts:profile_unfollow'
+                ]:
+                    self.assertRedirects(
+                        response, reverse(
+                            'posts:profile',
+                            args=(self.user.username,)
+                        )
+                    )
+                else:
+                    self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_for_not_author(self):
         """URL-адреса для НЕ автора доступы."""
@@ -98,10 +131,25 @@ class PostURLTest(TestCase):
             reverse_name = reverse(name, args=args)
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client_2.get(reverse_name)
-                if name == 'posts:post_edit':
+                if name in [
+                    'posts:post_edit',
+                    'posts:add_comment'
+                ]:
                     self.assertRedirects(
-                        response,
-                        reverse('posts:post_detail', args=(self.post.pk,))
+                        response, reverse(
+                            'posts:post_detail',
+                            args=(self.post.pk,)
+                        )
+                    )
+                elif name in [
+                    'posts:profile_follow',
+                    'posts:profile_unfollow'
+                ]:
+                    self.assertRedirects(
+                        response, reverse(
+                            'posts:profile',
+                            args=(self.user.username,)
+                        )
                     )
                 else:
                     self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -113,7 +161,14 @@ class PostURLTest(TestCase):
             with self.subTest(reverse_name=reverse_name):
                 response = self.client.get(reverse_name)
                 reverse_login = reverse('users:login')
-                if name in ['posts:post_edit', 'posts:post_create']:
+                if name in [
+                    'posts:post_edit',
+                    'posts:post_create',
+                    'posts:add_comment',
+                    'posts:profile_unfollow',
+                    'posts:profile_follow',
+                    'posts:follow_index'
+                ]:
                     self.assertRedirects(
                         response, f'{reverse_login}?next={reverse_name}')
                 else:

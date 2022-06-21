@@ -111,4 +111,4 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписчики'
 
     def __str__(self):
-        return self.text[:30]
+        return self.author[:30]

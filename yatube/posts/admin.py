@@ -19,17 +19,14 @@ class GroupAdmin(admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('pk', 'text', 'created', 'author',)
-    list_editable = ('text',)
     search_fields = ('text', 'author',)
     list_filter = ('created', 'author',)
-    empty_value_display = '-пусто-'
 
 
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('user', 'author',)
     search_fields = ('user', 'author',)
     list_filter = ('author',)
-    empty_value_display = '-пусто-'
 
 
 admin.site.register(Group, GroupAdmin)

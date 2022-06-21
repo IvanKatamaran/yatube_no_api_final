@@ -1,4 +1,4 @@
-{% if request.user != author %}
+{% if request.user != author and request.user.is_authenticated %}
   {% if following %}
   <a
     class="btn btn-outline-primary btn-sm"
