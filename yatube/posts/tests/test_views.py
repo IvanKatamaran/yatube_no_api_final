@@ -242,6 +242,7 @@ class PaginatorViewsTest(TestCase):
         """Тест паджинаора, по 10 постов на страницу."""
         name_args = (
             ('posts:index', None),
+            ('posts:follow_index', None),
             ('posts:group_list', (self.group.slug,)),
             ('posts:profile', (self.author.username,)),
         )
@@ -254,15 +255,7 @@ class PaginatorViewsTest(TestCase):
                 )
                 for page, count_posts in pages:
                     with self.subTest(page=page):
-                        response = self.client.get(reverse_name + page)
-                        self.assertEqual(
-                            len(response.context['page_obj']), count_posts
-                        )
-                for page, count_posts in pages:
-                    with self.subTest(page=page):
-                        response = self.authorized_user.get(
-                            reverse('posts:follow_index') + page
-                        )
+                        response = self.authorized_user.get(reverse_name + page)
                         self.assertEqual(
                             len(response.context['page_obj']), count_posts
                         )

@@ -4,8 +4,8 @@
   <h1>Все посты пользователя {{ author.get_full_name }}</h1>
   <h3>
     Всего постов: {{ author.posts.count }},
-    подписок: {{ subscribe.count }},
-    подписчиков: {{ subscribers.count }}
+    подписок: {{ author.follower.count }},
+    подписчиков: {{ author.following.count }}
   </h3>
   {% include 'posts/includes/follow_profile.html' %}
   {% for post in page_obj %}
