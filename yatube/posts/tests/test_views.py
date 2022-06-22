@@ -255,7 +255,8 @@ class PaginatorViewsTest(TestCase):
                 )
                 for page, count_posts in pages:
                     with self.subTest(page=page):
-                        response = self.authorized_user.get(reverse_name + page)
+                        response = self.authorized_user.get(
+                            reverse_name + page)
                         self.assertEqual(
                             len(response.context['page_obj']), count_posts
                         )
