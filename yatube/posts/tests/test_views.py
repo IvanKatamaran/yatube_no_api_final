@@ -258,18 +258,11 @@ class PaginatorViewsTest(TestCase):
                         self.assertEqual(
                             len(response.context['page_obj']), count_posts
                         )
-
-    def test_follow_paginator(self):
-        """Тест паджинатора для страницы follow."""
-        pages = (
-            ('?page=1', settings.QUANTITY_POSTS),
-            ('?page=2', settings.QUANTITY_POSTS_NEXT_PAGE),
-        )
-        for page, count_posts in pages:
-            with self.subTest(page=page):
-                response = self.authorized_user.get(
-                    reverse('posts:follow_index') + page
-                )
-                self.assertEqual(
-                    len(response.context['page_obj']), count_posts
-                )
+                for page, count_posts in pages:
+                    with self.subTest(page=page):
+                        response = self.authorized_user.get(
+                            reverse('posts:follow_index') + page
+                        )
+                        self.assertEqual(
+                            len(response.context['page_obj']), count_posts
+                        )

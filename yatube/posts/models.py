@@ -85,6 +85,7 @@ class Comment(models.Model):
     )
 
     class Meta:
+        ordering = ('-created',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 
@@ -111,4 +112,4 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписчики'
 
     def __str__(self):
-        return self.author[:30]
+        return self.author
